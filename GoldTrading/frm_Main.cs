@@ -20,6 +20,8 @@ namespace GoldTrading
 
         private void frm_Main_Load(object sender, EventArgs e)
         {
+            //var feePercens = 0.5 / 100;
+            var feePercens = _marketService.CalculateFee(1000);
             txt_CurrentMarketPrice.Text = _marketService.GetCurrentMarketPrice().ToString();
             cmb_OrderType.DataSource = new[] { new { name = "ซื้อ", value = "buy" }, new { name = "ขาย", value = "sell" } };
             //cmb_OrderType.DataSource = new List<dynamic> { new { Text = "ซื้อ", Value = "buy" }, new { Text = "Sell", Value = "sell" } };
@@ -49,8 +51,11 @@ namespace GoldTrading
             return sb.ToString();
         }
 
-        private void btn_NewOrder_Click(object sender, EventArgs e)
+        private void btn_NewOrder2_Click(object sender, EventArgs e)
         {
+            var reqData = new OrderModel { CustomerId = txt_CustomerID.Text, OrderType = cmb_OrderType.SelectedValue?.ToString(), Quantity = Convert.ToDecimal(txt_Quantity.Text ?? "0"), QuotedPrice = Convert.ToDecimal(txt_QuotedPrice.Text ?? "0") };
+            MockDatabase.Customers.TryGetValue(reqData.CustomerId, out CustomerModel? customerInfo);
+
             var tradingService = new GoldTradingService(40000m);
 
             Console.WriteLine("--- ข้อมูลก่อนทำรายการ ---");
@@ -75,52 +80,60 @@ namespace GoldTrading
             Console.WriteLine(">> ส่งคำสั่งซื้อ 5.0 บาททอง (เกินงบ)...");
             var result3 = tradingService.ProcessOrder(order3);
             Console.WriteLine(result3.Message + "\n");
+
+
         }
 
-        //private void btn_NewOrder_Click(object sender, EventArgs e)
-        //{
-        //    var reqData = new OrderModel { CustomerId = txt_CustomerID.Text, OrderType = cmb_OrderType.SelectedValue?.ToString(), Quantity = Convert.ToDecimal(txt_Quantity.Text ?? "0"), QuotedPrice = Convert.ToDecimal(txt_QuotedPrice.Text ?? "0") };
-        //    var customer = _customerService.GetCustomer(reqData.CustomerId);
-        //    if (customer == null)
-        //    {
-        //        MessageBox.Show("ไม่พบข้อมูลลูกค้า", "การทำรายการผิดพลาด!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        return;
-        //    }
-        //    var resultProcess = _marketService.ProcessOrder(reqData, customer);
-        //    MockDatabase.Customers.TryGetValue(reqData.CustomerId, out var customerID);
-        //    //MessageBox.Show(
-        //    //    InsertBreaks(resultProcess.Message),
-        //    //    resultProcess.Success
-        //    //        ? "การทำรายการเสร็จสมบูรณ์"
-        //    //        : "การทำรายการผิดพลาด!",
-        //    //    MessageBoxButtons.OK,
-        //    //    resultProcess.Success
-        //    //        ? MessageBoxIcon.Information
-        //    //        : MessageBoxIcon.Error
-        //    //);
+        private void btn_NewOrder_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var reqData = new OrderModel { CustomerId = txt_CustomerID.Text, OrderType = cmb_OrderType.SelectedValue?.ToString(), Quantity = Convert.ToDecimal(txt_Quantity.Text ?? "0"), QuotedPrice = Convert.ToDecimal(txt_QuotedPrice.Text ?? "0") };
+                //var customer = _customerService.GetCustomer(reqData.CustomerId);
+                MockDatabase.Customers.TryGetValue(reqData.CustomerId, out var customer);
+                if (customer == null)
+                {
+                    MessageBox.Show("ไม่พบข้อมูลลูกค้า", "การทำรายการผิดพลาด!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
-        //    TaskDialog.ShowDialog(new TaskDialogPage()
-        //    {
-        //        Caption = resultProcess.Success
-        //            ? "การทำรายการเสร็จสมบูรณ์"
-        //            : "การทำรายการผิดพลาด!",
+                if (MessageBox.Show("ยืนยันการทำรายการ ?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    var resultProcess = _marketService.ProcessOrder(reqData, customer);
 
-        //        Heading = "แจ้งเตือน",
+                    //MessageBox.Show(
+                    //    InsertBreaks(resultProcess.Message),
+                    //    resultProcess.Success
+                    //        ? "การทำรายการเสร็จสมบูรณ์"
+                    //        : "การทำรายการผิดพลาด!",
+                    //    MessageBoxButtons.OK,
+                    //    resultProcess.Success
+                    //        ? MessageBoxIcon.Information
+                    //        : MessageBoxIcon.Error
+                    //);
 
-        //        Text = resultProcess.Message,
+                    TaskDialog.ShowDialog(new TaskDialogPage()
+                    {
+                        Caption = resultProcess.Success
+                            ? "การทำรายการเสร็จสมบูรณ์"
+                            : "การทำรายการผิดพลาด!",
+                        Heading = "แจ้งเตือน",
+                        Text = resultProcess.Message,
+                        Buttons = { TaskDialogButton.OK },
+                        Icon = resultProcess.Success
+                            ? TaskDialogIcon.Information
+                            : TaskDialogIcon.Error
+                    });
 
-        //        Buttons =
-        //        {
-        //            TaskDialogButton.OK
-        //        },
+                    //MessageBox.Show(resultProcess.Message, resultProcess.Success ? "การทำรายการเสร็จสมบูรณ์" : "การทำรายการผิดพลาด!", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.RtlReading);
+                }
 
-        //        Icon = resultProcess.Success
-        //            ? TaskDialogIcon.Information
-        //            : TaskDialogIcon.Error
-        //    });
-
-        //    //MessageBox.Show(resultProcess.Message, resultProcess.Success ? "การทำรายการเสร็จสมบูรณ์" : "การทำรายการผิดพลาด!", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.RtlReading);
-        //}
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("กรุณากรอกข้อมูลให้ถูกต้อง", "ผิดพลาด!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         private void TextBoxDecimal_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -213,6 +226,12 @@ namespace GoldTrading
                 txt_CustomerID.Text = filtered;
                 txt_CustomerID.SelectionStart = pos > filtered.Length ? filtered.Length : pos;
             }
+        }
+
+        private void ประวตการซอขายToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            frm_TradingHistory f_Main = new frm_TradingHistory();
+            f_Main.ShowDialog();
         }
     }
 }

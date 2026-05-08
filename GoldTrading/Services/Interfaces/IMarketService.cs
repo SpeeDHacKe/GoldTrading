@@ -10,6 +10,7 @@ namespace GoldTrading.Services.Interfaces
     public interface IMarketService
     {
         decimal GetCurrentMarketPrice();
+        decimal CalculateFee(decimal price);
         void SetCurrentMarketPrice(decimal currentMarketPrice);
         OrderResult ProcessOrder(OrderModel? order, CustomerModel? customer);
     }

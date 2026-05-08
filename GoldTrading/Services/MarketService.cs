@@ -12,9 +12,15 @@ namespace GoldTrading.Services
     {
         // ราคาตลาดปัจจุบัน
         private static decimal _currentMarketPrice = 71560;
+        private static decimal _feePercent = 0.5m;
         public decimal GetCurrentMarketPrice()
         {
             return _currentMarketPrice;
+        }
+
+        public decimal CalculateFee(decimal price)
+        {
+            return price * (_feePercent / 100);
         }
 
         // ฟังค์ชั่นเซ็ตราคาทองปัจจุบัน
@@ -56,6 +62,13 @@ namespace GoldTrading.Services
                 return new OrderResult { Success = false, Message = "ราคาที่เสนอต้องมากกว่า 0" };
             }
 
+            // 4. ไม่สามารถสั่งซื้อสินค้าที่มีน้ำหนักรวมเกิน 5 บาทต่อวัน
+            var sumBuyGold = HistoryModel.OrdersHistory.Where(x => x.CustomerId == customer.CustomerId && x.OrderType == "buy").Sum(x => x.Quantity);
+            if (sumBuyGold >= 5)
+            {
+                return new OrderResult { Success = false, Message = $"ยอดรวมรายวันของลูกค้าเกินขีดจำกัด (หนักรวมเกิน 5 บาทต่อวัน) ยอดเหลือซื้อได้อีก {5 - sumBuyGold:N2} บาท" };
+            }
+
             // 5. ความทันสมัยของราคา: ราคาต้องอยู่ภายใน 2% ของราคาตลาดปัจจุบัน
             decimal priceDifference = Math.Abs(order.QuotedPrice - _currentMarketPrice);
             decimal maxAllowedDifference = _currentMarketPrice * 0.02m;
@@ -70,7 +83,7 @@ namespace GoldTrading.Services
 
             // 4. ตรวจสอบยอดคงเหลือ (Balance สำหรับซื้อ, QuantityGold สำหรับขาย)
             decimal totalValue = order.Quantity * order.QuotedPrice;
-            decimal newBalance = 0m;
+            decimal priceTotal = 0m;
             bool isBuyOrder = orderType == "buy" || orderType == "ซื้อ";
 
             if (isBuyOrder)
@@ -82,12 +95,15 @@ namespace GoldTrading.Services
                     return new OrderResult
                     {
                         Success = false,
-                        Message = $"ยอดเงินคงเหลือไม่เพียงพอ (ต้องการ: {totalValue:N2}, คงเหลือ: {currentBalance:N2})"
+                        Message = $"ยอดเงินคงเหลือไม่เพียงพอ (ต้องการ: {totalValue:N2} | เงินคงเหลือ: {currentBalance:N2})"
                     };
                 }
                 else
                 {
-                    newBalance = currentBalance - totalValue;
+                    //newBalance = currentBalance - totalValue;
+                    priceTotal = totalValue + CalculateFee(totalValue);
+                    customer.Balance -= priceTotal;
+                    customer.QuantityGold += order.Quantity;
                 }
             }
             else
@@ -99,21 +115,24 @@ namespace GoldTrading.Services
                     return new OrderResult
                     {
                         Success = false,
-                        Message = $"ปริมาณทองคำคงเหลือไม่เพียงพอสำหรับการขาย (ต้องการ: {order.Quantity}, คงเหลือ: {currentGold})"
+                        Message = $"ปริมาณทองคำคงเหลือไม่เพียงพอสำหรับการขาย (ต้องการ: {order.Quantity} | ทองคงเหลือ: {currentGold})"
                     };
                 }
                 else
                 {
-                    newBalance = totalValue + customer.Balance ?? 0m;
-                    CustomerService.MockupDataCustomers.Find(x => x.CustomerId == customer.CustomerId).Balance = newBalance;
+                    //customer.Balance = totalValue + customer.Balance ?? 0m;
+                    priceTotal = totalValue - CalculateFee(totalValue);
+                    customer.Balance += priceTotal;
+                    customer.QuantityGold -= order.Quantity;
                 }
             }
 
             // หากผ่านทุกเงื่อนไข
+            HistoryModel.OrdersHistory.Add(new OrderHistoryModel { CustomerId = order.CustomerId, OrderType = order.OrderType, Quantity = order.Quantity, QuotedPrice = order.QuotedPrice, TotalPrice = totalValue, CreateDate = DateTime.Now });
             return new OrderResult
             {
                 Success = true,
-                Message = $"คำสั่ง{(isBuyOrder ? "ซื้อ" : "ขาย")}ทองคำสำหรับ {customer.Name} \r\nจำนวน {order.Quantity} สำเร็จ \r\nที่ราคา {order.QuotedPrice:N2} \r\nยอดคงเหลือใหม่ {newBalance:N2}"
+                Message = $"คำสั่ง{(isBuyOrder ? "ซื้อ" : "ขาย")}ทองคำสำหรับ {customer.Name} \r\nจำนวน {order.Quantity} สำเร็จ \r\nที่ราคา {order.QuotedPrice:N2} \r\nค่าธรรมเนียม {CalculateFee(totalValue):N2} \r\nราคาสุทธิ {priceTotal:N2} \r\nยอดคงเหลือใหม่ {customer.Balance:N2}"
                 //Message = $"ทำรายการ {(isBuyOrder ? "ซื้อ" : "ขาย")} ทองคำจำนวน {order.Quantity} สำเร็จ ที่ราคา {order.QuotedPrice:N2}"
             };
         }

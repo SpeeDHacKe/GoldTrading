@@ -41,14 +41,19 @@
             label4 = new Label();
             label3 = new Label();
             label2 = new Label();
+            menuStrip1 = new MenuStrip();
+            toolStripMenuItem1 = new ToolStripMenuItem();
+            ประวตการซอขายToolStripMenuItem = new ToolStripMenuItem();
+            label6 = new Label();
             groupBox1.SuspendLayout();
+            menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // label1
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label1.Location = new Point(12, 16);
+            label1.Location = new Point(12, 44);
             label1.Name = "label1";
             label1.Size = new Size(318, 21);
             label1.TabIndex = 0;
@@ -57,7 +62,7 @@
             // txt_CurrentMarketPrice
             // 
             txt_CurrentMarketPrice.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            txt_CurrentMarketPrice.Location = new Point(336, 13);
+            txt_CurrentMarketPrice.Location = new Point(336, 41);
             txt_CurrentMarketPrice.Name = "txt_CurrentMarketPrice";
             txt_CurrentMarketPrice.ReadOnly = true;
             txt_CurrentMarketPrice.Size = new Size(112, 29);
@@ -77,7 +82,7 @@
             groupBox1.Controls.Add(label3);
             groupBox1.Controls.Add(label2);
             groupBox1.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold | FontStyle.Underline, GraphicsUnit.Point, 0);
-            groupBox1.Location = new Point(12, 59);
+            groupBox1.Location = new Point(12, 117);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(436, 238);
             groupBox1.TabIndex = 2;
@@ -99,6 +104,7 @@
             // 
             txt_QuotedPrice.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txt_QuotedPrice.Location = new Point(241, 146);
+            txt_QuotedPrice.MaxLength = 15;
             txt_QuotedPrice.Name = "txt_QuotedPrice";
             txt_QuotedPrice.Size = new Size(155, 29);
             txt_QuotedPrice.TabIndex = 7;
@@ -109,7 +115,7 @@
             // 
             txt_Quantity.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txt_Quantity.Location = new Point(241, 111);
-            txt_Quantity.MaxLength = 6;
+            txt_Quantity.MaxLength = 15;
             txt_Quantity.Name = "txt_Quantity";
             txt_Quantity.Size = new Size(155, 29);
             txt_Quantity.TabIndex = 6;
@@ -178,16 +184,51 @@
             label2.TabIndex = 0;
             label2.Text = "รหัสลูกค้า :";
             // 
+            // menuStrip1
+            // 
+            menuStrip1.Items.AddRange(new ToolStripItem[] { toolStripMenuItem1, ประวตการซอขายToolStripMenuItem });
+            menuStrip1.Location = new Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new Size(460, 25);
+            menuStrip1.TabIndex = 3;
+            menuStrip1.Text = "menuStrip1";
+            // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(12, 21);
+            // 
+            // ประวตการซอขายToolStripMenuItem
+            // 
+            ประวตการซอขายToolStripMenuItem.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            ประวตการซอขายToolStripMenuItem.Name = "ประวตการซอขายToolStripMenuItem";
+            ประวตการซอขายToolStripMenuItem.Size = new Size(118, 21);
+            ประวตการซอขายToolStripMenuItem.Text = "ประวัติการซื้อขาย";
+            ประวตการซอขายToolStripMenuItem.Click += ประวตการซอขายToolStripMenuItem_Click;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label6.Location = new Point(12, 79);
+            label6.Name = "label6";
+            label6.Size = new Size(169, 21);
+            label6.TabIndex = 0;
+            label6.Text = "ค่าธรรมเนียมซื้อขาย 0.5%";
+            // 
             // frm_Main
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(460, 309);
+            ClientSize = new Size(460, 365);
             Controls.Add(groupBox1);
+            Controls.Add(label6);
             Controls.Add(txt_CurrentMarketPrice);
             Controls.Add(label1);
+            Controls.Add(menuStrip1);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
+            MainMenuStrip = menuStrip1;
             MaximizeBox = false;
             Name = "frm_Main";
             StartPosition = FormStartPosition.CenterScreen;
@@ -195,6 +236,8 @@
             Load += frm_Main_Load;
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -213,5 +256,9 @@
         private TextBox txt_CustomerID;
         private Label label5;
         private Button btn_NewOrder;
+        private MenuStrip menuStrip1;
+        private ToolStripMenuItem toolStripMenuItem1;
+        private ToolStripMenuItem ประวตการซอขายToolStripMenuItem;
+        private Label label6;
     }
 }

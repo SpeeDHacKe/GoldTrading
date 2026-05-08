@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GoldTrading.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,4 +21,19 @@ namespace GoldTrading.Models
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
     }
+
+    public class OrderHistoryModel : OrderModel
+    {
+        public decimal TotalPrice { get; set; }
+        public DateTime CreateDate { get; set; }
+    }
+
+    public static class HistoryModel
+    {
+        public static List<OrderHistoryModel> OrdersHistory { get; set; } = new();
+    }
 }
+
+    
+
+    
